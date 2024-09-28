@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gra w węża</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: rgb(105, 140, 177);
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            margin: 30px 0;
+            color: rgb(90, 236, 17);
+        }
+
+        canvas {
+            border: 4px solid black;
+            background-color: rgba(255, 255, 255, 0.659);
+        }
+
+        p {
+            margin: 30px 0;
+            color: black;
+            font-size: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <h1>GRA W SNEJKA</h1>
+
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <p>UP / W - góra, DOWN / S - dół, LEFT / A - lewo, RIGHT / D - prawo</p>
+
+    <script>
+        // Get the canvas element
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const gridSize = 20;
+
+
+        // Player object
+        const player = {
+            size: gridSize,
+            speed: gridSize,
+            bodypositions: [{ x: 200, y: 200 }, { x: 180, y: 200 }, { x: 160, y: 200 }]
+        };
+
+
+        // Food
+        let food = {
+            x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
+            y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize,
+            size: gridSize
+        };
+
+
+        let movingDirection = null;
+
+
+        // Input handling
+
+        document.addEventListener('keydown', (e) => {
+            switch (e.code) {
+                case 'ArrowLeft':
+                case 'KeyA':
+                    if (movingDirection !== 'right') movingDirection = 'left';
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    if (movingDirection !== 'left') movingDirection = 'right';
+                    break;
+                case 'ArrowUp':
+                case 'KeyW':
+                    if (movingDirection !== 'down') movingDirection = 'up';
+                    break;
+                case 'ArrowDown':
+                case 'KeyS':
+                    if (movingDirection !== 'up') movingDirection = 'down';
+                    break;
+            }
+        });
+
+        // Game loop
+        function gameLoop() {
+            // Update
+            updatePlayer();
+
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw
+            drawPlayer();
+
+            //Draw Food
+            drawFood();
+
+            // Call the next frame
+            setTimeout(() => {
+                requestAnimationFrame(gameLoop);
+            }, 150);
+        }
+
+        function updatePlayer() {
+
+            const nowaGlowa = { x: player.bodypositions[0].x, y: player.bodypositions[0].y };
+
+            if (movingDirection === 'left') nowaGlowa.x -= player.speed;
+            if (movingDirection === 'right') nowaGlowa.x += player.speed;
+            if (movingDirection === 'up') nowaGlowa.y -= player.speed;
+            if (movingDirection === 'down') nowaGlowa.y += player.speed;
+
+            player.bodypositions.unshift(nowaGlowa)
+            player.bodypositions.pop()
+
+            //unstoppable
+            if (nowaGlowa.x < 0) nowaGlowa.x = canvas.width - gridSize;
+            if (nowaGlowa.x >= canvas.width) nowaGlowa.x = 0;
+            if (nowaGlowa.y < 0) nowaGlowa.y = canvas.height - gridSize;
+            if (nowaGlowa.y >= canvas.height) nowaGlowa.y = 0;
+
+            //eating
+            if (nowaGlowa.x === food.x && nowaGlowa.y === food.y) {
+                player.bodypositions.unshift(nowaGlowa); 
+                generateNewFood(); 
+            } else {
+                player.bodypositions.unshift(nowaGlowa); 
+                player.bodypositions.pop(); 
+            }
+        }
+
+        function generateNewFood() {
+            food.x = Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize;
+            food.y = Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize;
+        }
+
+
+        function drawPlayer() {
+            for (let noweCialo of player.bodypositions) {
+                ctx.fillStyle = 'limegreen';
+                ctx.fillRect(noweCialo.x, noweCialo.y, gridSize, gridSize);
+
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(noweCialo.x, noweCialo.y, gridSize, gridSize);
+            }
+        }
+
+        function drawFood() {
+            ctx.fillStyle = 'tomato';
+            ctx.fillRect(food.x, food.y, gridSize, gridSize);
+        }
+
+        // Start the game loop
+        gameLoop();
+
+    </script>
+</body>
+
+</html>
